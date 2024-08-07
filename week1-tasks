@@ -1,0 +1,88 @@
+Task: Deploy application in monolithic and microservices architecture.
+Description: For monolithic: 1 EC2 instance, deploy wordpress and MYSQL on the same instances. For microservices: 2 EC2 instances, 1 for wordpress and 1 for MYSQL. Configure the necessary security group for the instances. EC2 instance type: t2-micro, AMI: ubuntu-*. Create a welcome page in wordpress that will be the homepage
+Objective:
+Deploy a WordPress application using two different architectures:
+1.	Monolithic Architecture: Deploy WordPress and MySQL on a single EC2 instance.
+2.	Microservices Architecture: Deploy WordPress and MySQL on separate EC2 instances.
+Monolithic Architecture Deployment
+Steps
+1.	Launch an EC2 Instance
+o	Instance Type: t2.micro
+o	AMI: Ubuntu 20.04 LTS
+o	Security Group Configuration:
+	SSH (Port 22)
+	HTTP (Port 80)
+	MySQL (Port 3306)
+Install Apache2, php, MySQL:
+•	sudo apt update
+•	sudo apt install apache2
+•	sudo apt install mysql-server 
+used commands
+	sudo mysql -u root -p
+	CREATE DATABASE WP;
+	CREATE USER 'WP'@'%' IDENTIFIED BY 'ABCD1234';
+	GRANT ALL PRIVILEGES ON WP.* TO 'WP-USER'@'%';
+	FLUSH PRIVILEGES;
+	EXIT;
+•	sudo apt install php libapache2-mod-php php-mysql
+•	Install and Configure WordPress
+	cd /var/www/html
+	sudo wget -c http://wordpress.org/latest.tar.gz
+	sudo tar -xzvf latest.tar.gz (Unzip the file)
+	sudo mv wordpress/ /var/www/html/ 
+	cd wordpress
+	sudo cp wp-config-sample.php  wp-config.php
+Update wp-config.php with database details:
+	Open the browser and navigate your public IP address of your instance. You will get following wordpress webpage
+	sudo nano wp-config(I created new file as wp-config.php and I copied this below data into newly created one)
+	why because I did not update my database data into wordpress php.
+	sudo systemctl restart apache2 (you will get login page you should enter your database credentials)
+Microservices Architecture Deployment
+Steps
+1.	Launch Two EC2 Instances
+o	Instance Type: t2.micro
+o	AMI: Ubuntu*
+o	Security Group Configuration:
+	MySQL Instance: SSH (Port 22), MySQL (Port 3306)(Source-mywordpress security group id)
+	WordPress Instance: SSH (Port 22), HTTP (Port 80)
+Configure MySQL on the MySQL Instance1:
+	sudo apt update
+	sudo apt install mysql-server
+	sudo mysql -u root -p
+	CREATE DATABASE WORDPRESS;
+	CREATE USER ‘WP-USER’@’%’ IDENTIFIED BY ‘LENKA315@’;
+	GRANT ALL PRIVILEGES ON WORDPRESS.* TO ‘WP-USER’@’%’;
+	FLUSH PRIVILEGES;
+	EXIT;
+	Sudo nono  /etc/mysql/mysql.conf.d/mysqld.cnf(we have to edit the bind address(normally your system ip address) to everyone (0.0.0.0)
+	Allow remote connections by editing the MySQL configuration
+.bind-address=0.0.0.0
+.mysqlx-bind address=0.0.0.0
+Configure Apache2, PHP on the WordPress Instance2:
+	Repeate the same process for apache2  and PHP runtime installation as we did before in monolithic architecture.
+	Install the wordpress :
+	cd /var/www/html
+	sudo wget -c http://wordpress.org/latest.tar.gz
+	sudo tar -xzvf latest.tar.gz (Unzip the file)
+	sudo mv wordpress/ /var/www/html/ 
+	cd wordpress
+	sudo cp wp-config-sample.php wp-config.php
+	sudo nano wp-config.php
+	Update the wp-config.php file with your database data (note: update without fail and without spelling mistake)
+	Enter the host name as your private IP address of your MySQL instance (it will establish the connection between the 2 EC2 instances)
+	sudo systemctl restart apache2
+	navigate to wordpress instance and copy the public ip address and browse with that you will get a wordpress install page 
+	install the wordpress and login with your user credentials 
+	Creating a Welcome Page:
+	Navigate to Pages >> create a webpage>>publish>>settings>>reading>>Select static >>choose your published page>>save
+SETTING IP ADDRESS AS SITE -ADDRESS:
+Step1: Go to settings and navigate to general and erase the wordpress name in both site and wordpress urls and save the changes
+Step2: Go to wordpress instance and change the directory as cd /etc/apache2/sites-avilable 
+>cd /etc/apache2/sites-available
+>sudo nano 000-default.conf
+>add a wordpress name to the default apache2 server address 
+Step3: sudo systemctl restart apache2
+
+References:
+	https://youtu.be/8Uofkq718n8?si=zueAYhPkVbumbJ6j
+	Chatgpt
